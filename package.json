@@ -1,0 +1,24 @@
+{
+  "name": "handy-ms-broker-nats",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/edgracilla/handy-ms-broker-nats.git"
+  },
+  "keywords": [
+    "broker",
+    "microservice",
+    "nats"
+  ],
+  "author": "edgracilla@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/edgracilla/handy-ms-broker-nats/issues"
+  },
+  "homepage": "https://github.com/edgracilla/handy-ms-broker-nats#readme"
+}
