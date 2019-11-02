@@ -73,7 +73,16 @@ class HandyBroker {
         }
   
         let data = deserialize(resp)
-        return data.err ? reject(data.err) : resolve(data.value)
+
+        if (data.err) return reject(data.err)
+
+        if (data.value.error) {
+          let err = new Error(data.value.message)
+          err.stack = data.value.stack
+          return reject(err)
+        }
+
+        return resolve(data.value.data)
       })
     })
   }
