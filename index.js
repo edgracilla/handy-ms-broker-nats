@@ -34,30 +34,31 @@ class HandyBroker {
 
       if (content.err) {
         return this.nats.publish(repTo, serialize({
-          error: 1, message: `[${this.host}] Parse Error: Invalid json data received.`
+          error: 1, message: `[${this.host}-${resource}] Parse Error: Invalid json data received.`
         }))
       }
 
-      let { action, data: params } = content.value
+      let { action, args } = content.value
 
       if (!~functions.indexOf(action)) {
         return this.nats.publish(repTo, serialize({
-          error: 1, message: `[${this.host}] Service action '${resource}.${action}' is not registered.`
+          error: 1, message: `[${this.host}-${resource}] Service action '${resource}.${action}' is not registered.`
         }))
       }
 
-      service[action](params)
+      service[action](...args)
         .then(ret => this.nats.publish(repTo, serialize({ error: 0, data: ret })))
         .catch(err => {
           err.error = 1
-          err.message = `[${this.host}] ${err.message}`
-          this.nats.publish(repTo, serialize(err, Object.getOwnPropertyNames(err)))
+          err.message = `[${this.host}-${resource}] ${err.message}`
+          this.nats.publish(repTo, serialize(err))
         })
     })
   }
 
-  call (subject, params = {}) {
+  call (...args) {
     return new Promise((resolve, reject) => {
+      let subject = args.shift()
       let chunks = subject.split('.')
       let [version, resource, action] = chunks
       
@@ -67,22 +68,23 @@ class HandyBroker {
         default: return reject(new Error(`[${this.host}] ${subject} - Invalid subject format.`))
       }
   
-      this.nats.requestOne(subject, serialize({ action, data: params }), this.timeout, (resp) => {
+      this.nats.requestOne(subject, serialize({ action, args }), this.timeout, (resp) => {
         if(resp instanceof NATS.NatsError && resp.code === NATS.REQ_TIMEOUT) {
           return reject(new Error(`[${this.host}] ${subject} - Microservice request timeout!`))
         }
   
-        let data = deserialize(resp)
+        let parsed = deserialize(resp)
 
-        if (data.err) return reject(data.err)
+        if (parsed.err) return reject(parsed.err)
 
-        if (data.value.error) {
-          let err = new Error(data.value.message)
-          err.stack = data.value.stack
+        if (parsed.value.error) {
+          delete parsed.value.error
+          let err = new Error(parsed.value.message)
+          Object.keys(parsed.value).forEach(key => { err[key] = parsed.value[key] })
           return reject(err)
         }
 
-        return resolve(data.value.data)
+        return resolve(parsed.value.data)
       })
     })
   }
