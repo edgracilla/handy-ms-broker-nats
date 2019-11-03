@@ -1,6 +1,6 @@
 # handy-ms-broker-nats
 
-`handy-ms-broker-nats` registers all `async` function of a class and can be callable by the other microserice.
+`handy-ms-broker-nats` registers all `async` function of a class and then be callable by the other microserice.
 
 ## How it works?
 
