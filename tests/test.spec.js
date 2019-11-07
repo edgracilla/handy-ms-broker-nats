@@ -45,7 +45,3 @@ describe('Test Spec', function () {
       })
   })
 })
-
-// after(function () {
-//   process.exit(1)
-// })

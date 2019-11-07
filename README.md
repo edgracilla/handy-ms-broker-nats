@@ -1,6 +1,6 @@
 # handy-ms-broker-nats
 
-`handy-ms-broker-nats` registers all `async` function of a class and then be callable by the other microserice.
+`handy-ms-broker-nats` registers all `async` function of a class and then be callable by the other microservice.
 
 ## How it works?
 
@@ -30,22 +30,26 @@ All you have to do is connect to your NATS, pass it to `handy-ms-broker-nats` in
 ```
 // ms-app-1/index.js (aka subscriber)
 
-const nats = NATS.connect()
+const NATS = require('nats')
 const Broker = require('handy-ms-broker-nats')
-const subscriber = new Broker(nats)
 
-subscriber.register('resource', new SampleController())
+const nats = NATS.connect()
+const broker = new Broker(nats)
+
+broker.register('resource', new SampleController())
 ```
 
 Then, it is now callable by the other end.
 ```
 // ms-app-2/index.js (aka publisher)
 
-const nats = NATS.connect()
+const NATS = require('nats')
 const Broker = require('handy-ms-broker-nats')
-const publisher = new Broker(nats)
 
-publisher.call('resource.foo', { hey: 'ho!' })
+const nats = NATS.connect()
+const broker = new Broker(nats)
+
+broker.call('resource.foo', { hey: 'ho!' })
   .then(ret => {
     console.log(ret) // { action: 'foo', params: { hey: 'ho!' } }
   })
@@ -56,4 +60,36 @@ publisher.call('resource.foo', { hey: 'ho!' })
       throw err // if isn't ours
     }
   })
+```
+
+## In Constructor Registration
+```
+class Foo {
+  constructor (broker) {
+    this.broker = broker
+
+    this.broker.register('myService', this)
+  }
+
+  async foo (params) {
+    return Promise.resolve({ action: 'foo', params })
+  }
+
+  async sampleCall (params) {
+    return this.broker.call('otherService', params)
+  }
+}
+
+const NATS = require('nats')
+const Broker = require('handy-ms-broker-nats')
+
+const nats = NATS.connect()
+const broker = new Broker(nats)
+
+const foo = new Foo(broker)
+
+foo.sampleCall(params)
+  .then(ret => console.log(ret))
+  .catch(err => console.log(err))
+
 ```
