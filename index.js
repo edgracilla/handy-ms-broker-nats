@@ -34,7 +34,7 @@ class HandyBroker {
 
       if (content.err) {
         return this.nats.publish(repTo, serialize({
-          error: 1, message: `[${this.host}-${resource}] Parse Error: Invalid json data received.`
+          error: 1, message: `[${this.host}:${resource}] Parse Error: Invalid json data received.`
         }))
       }
 
@@ -42,7 +42,7 @@ class HandyBroker {
 
       if (!~functions.indexOf(action)) {
         return this.nats.publish(repTo, serialize({
-          error: 1, message: `[${this.host}-${resource}] Service action '${resource}.${action}' is not registered.`
+          error: 1, message: `[${this.host}:${resource}] Service action '${resource}.${action}' is not registered.`
         }))
       }
 
@@ -50,8 +50,8 @@ class HandyBroker {
         .then(ret => this.nats.publish(repTo, serialize({ error: 0, data: ret })))
         .catch(err => {
           err.error = 1
-          err.message = `[${this.host}-${resource}] ${err.message}`
-          this.nats.publish(repTo, serialize(err))
+          err.message = `[${this.host}:${resource}.${action}] ${err.message}`
+          this.nats.publish(repTo, serialize(err, Object.getOwnPropertyNames(err)))
         })
     })
   }

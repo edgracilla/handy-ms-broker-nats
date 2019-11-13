@@ -13,7 +13,8 @@
   "keywords": [
     "broker",
     "microservice",
-    "nats"
+    "nats",
+    "rpc"
   ],
   "author": "edgracilla@gmail.com",
   "license": "MIT",
