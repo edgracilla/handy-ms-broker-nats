@@ -6,7 +6,7 @@
 
 Lets say you have a `SampleController` class from one of your microservice, and you want it to be callable on the other `node.js` microservice.
 
-```
+```javascript
 // sample_ctl.js
 
 class SampleController {
@@ -27,7 +27,7 @@ class SampleController {
 
 All you have to do is connect to your NATS, pass it to `handy-ms-broker-nats` instance, then register your `SampleController`
 
-```
+```javascript
 // ms-app-1/index.js (aka subscriber)
 
 const NATS = require('nats')
@@ -40,7 +40,7 @@ broker.register('resource', new SampleController())
 ```
 
 Then, it is now callable by the other end.
-```
+```javascript
 // ms-app-2/index.js (aka publisher)
 
 const NATS = require('nats')
@@ -63,7 +63,7 @@ broker.call('resource.foo', { hey: 'ho!' })
 ```
 
 ## In Constructor Registration
-```
+```javascript
 class Foo {
   constructor (broker) {
     this.broker = broker
