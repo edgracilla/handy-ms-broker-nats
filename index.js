@@ -80,7 +80,11 @@ class HandyBroker {
         if (parsed.value.error) {
           delete parsed.value.error
           let err = new Error(parsed.value.message)
-          Object.keys(parsed.value).forEach(key => { err[key] = parsed.value[key] })
+          console.log('---a', Object.getOwnPropertyNames(parsed.value))
+          Object.keys(parsed.value).forEach(key => {
+            console.log('---b', key)
+            err[key] = parsed.value[key]
+          })
           return reject(err)
         }
 
