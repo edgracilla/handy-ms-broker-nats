@@ -51,7 +51,11 @@ class HandyBroker {
         .catch(err => {
           err.error = 1
           err.message = `[${this.host}:${resource}.${action}] ${err.message}`
-          this.nats.publish(repTo, serialize(err, Object.getOwnPropertyNames(err)))
+
+          this.nats.publish(repTo, err.constructor.name === 'Error'
+            ? serialize(err, Object.getOwnPropertyNames(err))
+            : serialize(err)
+          )
         })
     })
   }
@@ -80,11 +84,8 @@ class HandyBroker {
         if (parsed.value.error) {
           delete parsed.value.error
           let err = new Error(parsed.value.message)
-          console.log('---a', Object.getOwnPropertyNames(parsed.value))
-          Object.keys(parsed.value).forEach(key => {
-            console.log('---b', key, parsed.value[key])
-            err[key] = parsed.value[key]
-          })
+
+          Object.keys(parsed.value).forEach(key => { err[key] = parsed.value[key] })
           return reject(err)
         }
 
