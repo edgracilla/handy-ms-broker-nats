@@ -52,9 +52,9 @@ class HandyBroker {
           err.error = 1
           err.message = `[${this.host}:${resource}.${action}] ${err.message}`
 
-          this.nats.publish(repTo, err.constructor.name === 'Error'
-            ? serialize(err, Object.getOwnPropertyNames(err))
-            : serialize(err)
+          this.nats.publish(repTo, err.constructor.name === 'ValidationError'
+            ? serialize(err)
+            : serialize(err, Object.getOwnPropertyNames(err))
           )
         })
     })
