@@ -82,7 +82,7 @@ class HandyBroker {
           let err = new Error(parsed.value.message)
           console.log('---a', Object.getOwnPropertyNames(parsed.value))
           Object.keys(parsed.value).forEach(key => {
-            console.log('---b', key)
+            console.log('---b', key, parsed.value[key])
             err[key] = parsed.value[key]
           })
           return reject(err)
