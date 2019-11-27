@@ -19,16 +19,23 @@ class HandyBroker {
     this.nats = nats
   }
 
-  // -- actions handler
-
   register (resource, service) {
+    if (!service && resource) {
+      service = resource; resource = service.resource
+    }
+
+    let events = {}
     let proto = Object.getPrototypeOf(service)
     let functions = Object.getOwnPropertyNames(proto)
-    let subject = `${this.subjAction}.${resource}`
 
+    const subject = `${this.subjAction}.${resource}`
+    const eventSubj = `${this.subjEvent}.${resource}`
     const AsyncFunction = (async function () {}).constructor
+
+    events = functions.filter(fn => service[fn].constructor !== AsyncFunction && /^on/.test(fn))
     functions = functions.filter(fn => service[fn].constructor === AsyncFunction)
 
+    // -- register async functions (aka action handler)
     this.nats.subscribe(subject, { queue: 'job.workers' }, (payload, repTo) => {
       let content = deserialize(payload)
 
@@ -57,6 +64,23 @@ class HandyBroker {
             : serialize(err, Object.getOwnPropertyNames(err))
           )
         })
+    })
+
+    // -- register event functions (aka event handler)
+    this.nats.subscribe(eventSubj, { queue: 'job.workers' }, (payload) => {
+      let content = deserialize(payload)
+
+      if (content.err) { // TODO: to handle assertion
+        return console.log(`[WARN] Parse Error: Invalid json data received.`)
+      }
+
+      let { event, caller, data: params } = content.value
+
+      if (!~events.indexOf(event)) { // TODO: to handle assertion
+        return console.log(`[WARN] Service action '${resource}.${event}' is not registered. (caller: ${caller})`)
+      }
+
+      service[event](params) // err handling should be inside the event fn
     })
   }
 
